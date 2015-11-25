@@ -1,0 +1,29 @@
+package com.ardublock.translator.block;
+
+import com.ardublock.translator.Translator;
+import com.ardublock.translator.block.exception.SocketNullException;
+
+public class WireWriteBlock extends TranslatorBlock
+{
+	protected WireWriteBlock(Long blockId, Translator translator, String codePrefix, String codeSuffix, String label)
+	{
+		super(blockId, translator, codePrefix, codeSuffix, label);
+	}
+
+	public String toCode() throws SocketNullException
+	{
+		WireReadBlock.setupWireEnvironment(translator);
+		String ret = "\t__ardublockI2cWriteData( ";
+		TranslatorBlock tb = getRequiredTranslatorBlockAtSocket(0);
+		ret = ret + tb.toCode();
+		ret = ret + " , ";
+		tb = getRequiredTranslatorBlockAtSocket(1);
+		ret = ret + tb.toCode();
+		ret = ret + " , ";
+		tb = getRequiredTranslatorBlockAtSocket(2);
+		ret = ret + tb.toCode();
+		ret = ret + " );\n";
+		return ret;
+	}
+
+}

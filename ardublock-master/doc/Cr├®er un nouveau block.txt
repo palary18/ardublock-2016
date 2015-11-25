@@ -1,0 +1,144 @@
+						Documentation
+						--------------
+Didier Carne
+LGT Champollion - Figeac
+dcarne@ac-toulouse.fr
+--------------
+				COMMENT CREER UN NOUVEAU BLOCK
+				------------------------------
+Fichiers à modifier
+-------------------
+1- "ardublock.xml" 				dans 		src/main/resources/com/ardublock/block
+	contient la description de l'interface graphique du module
+	contient sa localisation dans un menu
+2- "ardublock.properties"		dans 		src/main/resources/com/ardublock/block
+	contient la définition des textes à afficher dans l'interface graphique
+3- "ardublock_fr.properties"	dans 		src/main/resources/com/ardublock/block
+	contient la définition des textes à afficher dans l'interface graphique en français
+4- "TranslatorBlockFactory"		dans 		src/main/java/com/ardublock/translator/block
+	permet d'associer le code à générer avec l'interface graphique du module
+	
+Fichiers à créer
+----------------
+1- créer une classe dans un fichier /java dans	src/main/java/com/ardublock/translator/block
+	permet de créer le code à générer pour le module
+	
+	===================================================================================
+
+		MODIFICATIONS ET AJOUT DANS UN FICHIER EXISTANT
+		-----------------------------------------------
+
+	1- ardublock.xml
+	----------------
+a) rajouter un "BlockGenus"
+	avec "name" qui sert à repérer le block, utilisé dans le fichier "TranslatorBlockFactory"
+	avec "kind" qui définit le type d'interface graphique
+	avec "initlabel" qui définit le texte à afficger dans le module
+	mettre ensuite un "BlockConnector" pour définir les paramètres E/S du module
+	mettre ensuite la référence à une image si nécessaire
+	
+	<BlockGenus name="df_lcd_keypad" kind="command" color="255 102 0" initlabel="bg.df_lcd_keypad">
+  	<BlockConnectors>
+    <BlockConnector connector-type="string" connector-kind="socket" label="bg.message">
+      		<DefaultArg genus-name="message" label="message"/>
+    </BlockConnector>
+	</BlockConnectors>
+	 <Images>
+    <Image>
+      <FileLocation>com/ardublock/block/champodc/DFR0009-100x100.jpg</FileLocation>
+    </Image>
+  	</Images>
+	</BlockGenus>
+	
+b) placer le module créé dans un menu
+
+		<BlockDrawer button-color="255 102 0" name="bd.dfrobot" type="factory">
+		.....
+	<BlockGenusMember>df_lcd_keypad</BlockGenusMember>
+		</BlockDrawer>
+		
+c) ou créer un nouveau menu si besoin
+
+rajouter dans ardublock.xml
+------------------
+	<!-- CHAMPOL  -->
+    
+    <BlockGenus name="df_lcd_keypad" kind="command" color="255 102 0" initlabel="bg.df_lcd_keypad">
+  	<BlockConnectors>
+
+et plus bas 
+
+	<BlockDrawer button-color="255 102 0" name="bd.champo" type="factory">
+          <BlockGenusMember>df_lcd_keypad</BlockGenusMember>
+      </BlockDrawer>
+
+
+ dans ardublock.properties
+ -------------------------
+ 
+ 	bd.champo=CHAMPOL
+ 	
+ dans TranslatorBlockFactory
+ ---------------------------
+ 
+ 	//CHAMPOL
+ 	if (blockName.equals .....
+ 	
+ 	2- ardublock.properties
+ 	-----------------------
+ comme pour le menu rajouter
+ 
+bg.df_lcd_keypad=DFRobot LCD Keypad
+et tout autre définition utile
+
+	3- ardublock_fr.properties
+	--------------------------
+mettre la traduction en farançais si nécessaire
+
+ 	
+ 		CREATION D'UN FICHIER
+ 		---------------------
+ Il faut créer la classe correspondant au nouveau module
+ dans src/main/java/com/ardublock/translator/block 
+ ou dans src/main/java/com/ardublock/translator/block/champol
+ ou ...
+ 
+ faire new>class
+ donner le nom de la classe
+ et la construire
+ pour cela voir les autres définitions de classe
+ ci-dessous un exemple pour l'affichier LCD
+ 
+import com.ardublock.translator.Translator;
+import com.ardublock.translator.block.exception.SocketNullException;
+import com.ardublock.translator.block.LCDKeypad; // si référence à une autre classe
+import com.ardublock.translator.block.TranslatorBlock;
+
+public class DfrobotLCDKeypadBlock extends TranslatorBlock //LCDKeypad si référence à la classe LCDkeypad
+{
+	public DfrobotLCDKeypadBlock(Long blockId, Translator translator)
+	{
+		super(blockId, translator);
+	}
+
+	@Override
+	public String toCode() throws SocketNullException
+	{
+		// routine pour définir les include et les var globales, voir ci-après
+		setupWireEnvironment(translator); 
+		// récupéation des paramètres du module, ici le message placé en rang 0
+		// on écrit donc le code à générer
+		TranslatorBlock translatorBlock = this.getRequiredTranslatorBlockAtSocket(0, "lcd.print( ", " );\n");
+		// création du texte de code correspondant
+		String ret = translatorBlock.toCode();
+		return ret;
+	}
+	
+	public static void setupWireEnvironment(Translator t)
+	{
+		// définition des include
+		t.addHeaderFile("LiquidCrystal.h");
+		// code du setup
+		t.addDefinitionCommand("LiquidCrystal lcd(12, 11, 5, 4, 3, 2);");
+	}
+}
